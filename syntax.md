@@ -1,12 +1,12 @@
 # NAO Syntax (Thoughts)
-```s
+```properties
 Program := 
     | Statement
     | nil
 
 Statement :=
     | Sequence
-    | Single -- 
+    | Single --CLI input
     | nil
 
 Sequence :=
