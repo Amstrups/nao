@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	filename := "./examples/Seq/ex_seq3"
+	filename := "./examples/Basic/ex_binary2"
 	filename += ".nao"
 	fmt.Printf("Reading file: \"%s\"\n", filename)
 	f, err := os.ReadFile(filename)
@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Printf("Writing dump to file: \"%s\"\n", filename + ".out")
+  
+	fmt.Printf("Writing dump to file: \"%s\"\n", filename+".out")
 	spew.Fdump(out, p.Context)
 }

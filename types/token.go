@@ -33,6 +33,10 @@ const (
 
 	BACKSLASH
 	SLASH
+
+  BINARY
+  P2
+  
 )
 
 type Token struct {

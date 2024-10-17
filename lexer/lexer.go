@@ -37,7 +37,16 @@ func (l *Lexer) unread() {
 	l.pos.Column = max(0, l.pos.Column-1)
 }
 
-func (l *Lexer) next() {
+func (l *Lexer) next(c rune) t.Position {
+	pos := l.pos
+	for l.ch != c || l.err != io.EOF {
+		l.advance()
+	}
+	return pos
+
+}
+
+func (l *Lexer) advance() {
 	l.ch, _, l.err = l.reader.ReadRune()
 	if l.ch == '\n' {
 		l.pos.Line++
@@ -63,7 +72,7 @@ func (l *Lexer) Lex() t.Token {
 func (l *Lexer) lex() t.Token {
 
 	for {
-		l.next()
+		l.advance()
 		if l.err != nil {
 			if l.err == io.EOF {
 				return t.Token{T: t.EOF, Pos: l.pos, S: ""}
@@ -98,6 +107,9 @@ func (l *Lexer) lex() t.Token {
 			return t.Token{T: t.BACKSLASH, Pos: l.pos, S: "\\"}
 		case '/':
 			return t.Token{T: t.SLASH, Pos: l.pos, S: "/"}
+		case '0':
+			return l.binOrNumber()
+
 		default:
 			if unicode.IsDigit(l.ch) {
 				return l.number()
@@ -109,10 +121,55 @@ func (l *Lexer) lex() t.Token {
 	}
 }
 
+func (l *Lexer) binOrNumber() t.Token {
+	pos := l.pos
+	l.advance()
+	if l.ch != 'b' {
+		l.next('0')
+		n := l.number()
+		n.Pos = pos
+		return n
+
+	}
+
+	l.advance()
+
+	s := "0b"
+	for {
+		switch l.ch {
+		case '0', '1':
+			s += string(l.ch)
+			l.advance()
+			continue
+		case 'x':
+			s += "x"
+			l.advance()
+			if unicode.IsDigit(l.ch) == false {
+				return t.Token{T: t.ILLEGAL,
+					Pos: pos,
+					S:   "Expected number after binary length decl",
+				}
+
+			}
+			n := l.number()
+			switch n.S {
+			case "4", "8", "16", "32", "64":
+				return t.Token{T: t.BINARY, Pos: pos, S: s + n.S}
+			}
+
+			return t.Token{
+				T:   t.ILLEGAL,
+				Pos: pos,
+				S:   "Expected number X in 2^n for binary literal",
+			}
+		}
+	}
+}
+
 func (l *Lexer) number() t.Token {
 	tok := t.Token{T: t.NUMBER, Pos: l.pos, S: string(l.ch)}
 	for {
-		l.next()
+		l.advance()
 		if l.ch == '\n' {
 			return tok
 		}
@@ -139,7 +196,7 @@ func (l *Lexer) number() t.Token {
 func (l *Lexer) ident() t.Token {
 	tok := t.Token{T: t.IDENT, Pos: l.pos, S: string(l.ch)}
 	for {
-		l.next()
+		l.advance()
 		if l.ch == '\n' {
 			return tok
 		}
@@ -156,7 +213,7 @@ func (l *Lexer) ident() t.Token {
 func (l *Lexer) string() t.Token {
 	tok := t.Token{T: t.IDENT, Pos: l.pos, S: string(l.ch)}
 	for {
-		l.next()
+		l.advance()
 		if l.ch == '"' {
 			return tok
 		}

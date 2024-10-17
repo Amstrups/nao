@@ -57,7 +57,7 @@ func (p *Parser) parseExpr() Expr {
 	switch p.head.T {
 	case t.MINUS:
 		return p.unary()
-	case t.NUMBER, t.FLOAT, t.IDENT, t.STRING:
+	case t.NUMBER, t.FLOAT, t.BINARY, t.IDENT, t.STRING:
 		return p.binop()
 	case t.LPAREN:
 		p.read()
@@ -91,7 +91,22 @@ func (p *Parser) binop() Expr {
 	p.read()
 
 	switch p.head.T {
-	case t.PLUS, t.MINUS, t.MULTI, t.SLASH, t.LPAREN:
+	case t.MULTI, t.SLASH:
+		bin := &BinaryExpr{A: left, OP: p.head}
+
+		p.read()
+		B := p.parseExpr()
+		switch ty := B.(type) {
+		case *BinaryExpr:
+			bin.B = ty.A
+			bi := *bin
+			ty.A = &bi
+			return ty
+		default:
+			bin.B = B
+		}
+		return bin
+	case t.PLUS, t.MINUS, t.LPAREN:
 		bin := &BinaryExpr{A: left, OP: p.head}
 		p.read()
 		bin.B = p.parseExpr()
@@ -108,7 +123,7 @@ func (p *Parser) parseLhs() Expr {
 	switch p.head.T {
 	case t.IDENT:
 		return p.parseIdent()
-	case t.STRING, t.NUMBER, t.FLOAT:
+	case t.STRING, t.NUMBER, t.FLOAT, t.BINARY:
 		return &BasicLit{value: p.head.S, pos: p.head.Pos, tok: p.head.T}
 	}
 	return nil

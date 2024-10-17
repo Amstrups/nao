@@ -34,7 +34,6 @@ Expr :=
 UnaryOp :=
     | '-' Basic
     | '-' Ident
-    
 
 BinaryOp :=
     | Expr Op Expr
@@ -42,10 +41,11 @@ BinaryOp :=
 Paren :=
     | '(' Expr ')'
 
-Basic :=
+BasicLiteral :=
     | Number
     | Float
     | String
+    | Binary
 
 Op :=
     | '+'
@@ -53,4 +53,25 @@ Op :=
     | '*'
     | '/'
     | '^' -- TODO
+
+Binary :=
+    | '0b' ZOs+ P2 
+    | '0b' ZOs+
+
+ZOs+ :=
+    | '0'ZOs*
+    | '1'ZOs*
+
+ZOs* :=
+    | '0'ZOs*
+    | '1'ZOs*
+    | nil
+
+P2 := 
+    | 'x4'
+    | 'x8'
+    | 'x16'
+    | 'x32'
+    | 'x64'
+
 ```
