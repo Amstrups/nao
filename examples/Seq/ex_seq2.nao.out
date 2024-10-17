@@ -1,0 +1,84 @@
+(parser.Context) {
+ Program: (parser.ProgramExpr) {
+  Root: (*parser.SeqStmt)(0x140001146c0)({
+   pos: (types.Position) 1 :1],
+   X: ([]parser.Expr) (len=5 cap=8) {
+    (*parser.UnaryExpr)(0x14000128080)({
+     OP: (types.Token) {
+      T: (types.TokenCode) 14,
+      Pos: (types.Position) 1 :1],
+      S: (string) (len=1) "-"
+     },
+     A: (*parser.BasicLit)(0x14000114720)({
+      pos: (types.Position) 1 :2],
+      tok: (types.TokenCode) 4,
+      value: (string) (len=1) "1"
+     })
+    }),
+    (*parser.UnaryExpr)(0x14000078040)({
+     OP: (types.Token) {
+      T: (types.TokenCode) 14,
+      Pos: (types.Position) 1 :4],
+      S: (string) (len=1) "-"
+     },
+     A: (*parser.BadExpr)(0x14000076040)({
+      From: (types.Position) 1 :6],
+      value: (string) (len=20) "Unclosed parenthesis"
+     })
+    }),
+    (*parser.BadExpr)(0x140000760a0)({
+     From: (types.Position) 1 :12],
+     value: (string) (len=20) "Unclosed parenthesis"
+    }),
+    (*parser.UnaryExpr)(0x140000780c0)({
+     OP: (types.Token) {
+      T: (types.TokenCode) 14,
+      Pos: (types.Position) 1 :15],
+      S: (string) (len=1) "-"
+     },
+     A: (*parser.BinaryExpr)(0x1400002c0a0)({
+      A: (*parser.BasicLit)(0x140000722d0)({
+       pos: (types.Position) 1 :16],
+       tok: (types.TokenCode) 4,
+       value: (string) (len=1) "3"
+      }),
+      OP: (types.Token) {
+       T: (types.TokenCode) 13,
+       Pos: (types.Position) 1 :17],
+       S: (string) (len=1) "+"
+      },
+      B: (*parser.BasicLit)(0x14000072360)({
+       pos: (types.Position) 1 :18],
+       tok: (types.TokenCode) 4,
+       value: (string) (len=1) "3"
+      })
+     })
+    }),
+    (*parser.BinaryExpr)(0x1400002c0f0)({
+     A: (*parser.BasicLit)(0x140000723f0)({
+      pos: (types.Position) 1 :20],
+      tok: (types.TokenCode) 4,
+      value: (string) (len=1) "3"
+     }),
+     OP: (types.Token) {
+      T: (types.TokenCode) 13,
+      Pos: (types.Position) 1 :21],
+      S: (string) (len=1) "+"
+     },
+     B: (*parser.UnaryExpr)(0x14000078100)({
+      OP: (types.Token) {
+       T: (types.TokenCode) 14,
+       Pos: (types.Position) 1 :22],
+       S: (string) (len=1) "-"
+      },
+      A: (*parser.BasicLit)(0x140000724b0)({
+       pos: (types.Position) 1 :23],
+       tok: (types.TokenCode) 4,
+       value: (string) (len=1) "3"
+      })
+     })
+    })
+   }
+  })
+ }
+}

@@ -1,0 +1,35 @@
+(parser.Context) {
+ Program: (parser.ProgramExpr) {
+  Root: (*parser.SeqStmt)(0x14000114390)({
+   pos: (types.Position) 1 :1],
+   X: ([]parser.Expr) (len=1 cap=1) {
+    (*parser.UnaryExpr)(0x1400010e080)({
+     OP: (types.Token) {
+      T: (types.TokenCode) 14,
+      Pos: (types.Position) 1 :1],
+      S: (string) (len=1) "-"
+     },
+     A: (*parser.ParenExpr)(0x140001200e0)({
+      A: (*parser.BinaryExpr)(0x140001360f0)({
+       A: (*parser.BasicLit)(0x14000114420)({
+        pos: (types.Position) 1 :3],
+        tok: (types.TokenCode) 4,
+        value: (string) (len=1) "1"
+       }),
+       OP: (types.Token) {
+        T: (types.TokenCode) 13,
+        Pos: (types.Position) 1 :4],
+        S: (string) (len=1) "+"
+       },
+       B: (*parser.BasicLit)(0x140001144b0)({
+        pos: (types.Position) 1 :5],
+        tok: (types.TokenCode) 4,
+        value: (string) (len=1) "2"
+       })
+      })
+     })
+    })
+   }
+  })
+ }
+}
