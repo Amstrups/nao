@@ -1,12 +1,11 @@
 # NAO Syntax (Thoughts)
-```properties
+```ML
 Program := 
     | Statement
     | nil
 
 Statement :=
     | Sequence
-    | Single --CLI input
     | nil
 
 Sequence :=
@@ -19,7 +18,7 @@ SeqHead :=
     | Assignment
 
 SeqTail :=
-    | SeqHead SeqTail
+    | ';' SeqHead SeqTail
     | nil
 
 Assignment :=
