@@ -1,8 +1,8 @@
 package lexer
 
 import (
+	t "github.com/amstrups/nao/types"
 	"io"
-	t "nao/types"
 	"strings"
 	"time"
 	"unicode"

@@ -1,8 +1,8 @@
 package lexer
 
 import (
-	ty "nao/types"
 	"fmt"
+	ty "github.com/amstrups/nao/types"
 	"strings"
 	"testing"
 )

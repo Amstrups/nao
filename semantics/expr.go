@@ -1,27 +1,41 @@
-package parser
+package semantics
 
 import (
+	"github.com/amstrups/nao/parser"
 	ty "github.com/amstrups/nao/types"
 )
 
 type (
-	Node interface {
-		Start() ty.Position
-	}
+	T uint
 
 	Expr interface {
-		Node
+		parser.Node
 		exprNode()
 	}
 
 	Stmt interface {
-		Node
+		parser.Node
 		stmtNode()
 	}
 
 	ProgramExpr struct {
 		Root Stmt
 	}
+)
+
+const (
+	ILLEGAL = iota
+
+	INT
+	FLOAT
+
+	STRING
+
+	BOOL
+
+	VOID
+
+	IDENT
 )
 
 // Context
@@ -47,6 +61,17 @@ type BasicLit struct {
 	Pos   ty.Position
 	Tok   ty.TokenCode
 	Value string
+	T
+}
+
+func Basic(b *parser.BasicLit, t T) *BasicLit {
+	return &BasicLit{
+		Pos:   b.Pos,
+		Tok:   b.Tok,
+		Value: b.Value,
+		T:     t,
+	}
+
 }
 
 func (b BasicLit) Start() ty.Position {
@@ -55,18 +80,20 @@ func (b BasicLit) Start() ty.Position {
 
 // Identifier
 type Ident struct {
-	Name string
-	Pos  ty.Position
+	name string
+	pos  ty.Position
+	T
 }
 
 func (i Ident) Start() ty.Position {
-	return i.Pos
+	return i.pos
 }
 
 // Unary Expression
 type UnaryExpr struct {
 	OP ty.Token
 	A  Expr
+	T
 }
 
 func (u UnaryExpr) Start() ty.Position {
@@ -78,6 +105,7 @@ type BinaryExpr struct {
 	A  Expr
 	OP ty.Token
 	B  Expr
+	T
 }
 
 func (b BinaryExpr) Start() ty.Position {
@@ -87,6 +115,7 @@ func (b BinaryExpr) Start() ty.Position {
 // Parentethised(?) Expression
 type ParenExpr struct {
 	A Expr
+	T
 }
 
 func (p ParenExpr) Start() ty.Position {
@@ -104,12 +133,13 @@ func (*BinaryExpr) exprNode() {}
 
 // Sequence Expression
 type SeqStmt struct {
-	pos ty.Position
+	Pos ty.Position
 	X   []Expr
+	T
 }
 
 func (s SeqStmt) Start() ty.Position {
-	return s.pos
+	return s.Pos
 }
 
 func (*SeqStmt) stmtNode() {}

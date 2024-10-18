@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
-	l "nao/lexer"
-	t "nao/types"
+	l "github.com/amstrups/nao/lexer"
+	t "github.com/amstrups/nao/types"
 )
 
 type Parser struct {
@@ -63,7 +63,7 @@ func (p *Parser) parseExpr() Expr {
 		p.read()
 		x := p.parseExpr()
 		if p.head.T != t.RPAREN {
-			return &BadExpr{From: x.Pos(), value: "Unclosed parenthesis"}
+			return &BadExpr{From: x.Start(), value: "Unclosed parenthesis"}
 		}
 		return &ParenExpr{A: x}
 	case t.EOF:
@@ -115,7 +115,7 @@ func (p *Parser) binop() Expr {
 		return left
 	}
 
-	return &BadExpr{From: left.Pos(), value: p.head.S}
+	return &BadExpr{From: left.Start(), value: p.head.S}
 
 }
 
@@ -124,13 +124,13 @@ func (p *Parser) parseLhs() Expr {
 	case t.IDENT:
 		return p.parseIdent()
 	case t.STRING, t.NUMBER, t.FLOAT, t.BINARY:
-		return &BasicLit{value: p.head.S, pos: p.head.Pos, tok: p.head.T}
+		return &BasicLit{Value: p.head.S, Pos: p.head.Pos, Tok: p.head.T}
 	}
 	return nil
 }
 
 func (p *Parser) parseIdent() *Ident {
-	x := &Ident{name: p.head.S, pos: p.head.Pos}
+	x := &Ident{Name: p.head.S, Pos: p.head.Pos}
 	p.read()
 	return x
 }
