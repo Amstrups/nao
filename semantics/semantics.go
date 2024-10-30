@@ -5,14 +5,8 @@ import (
 
 	"github.com/amstrups/nao/parser"
 	ty "github.com/amstrups/nao/types"
+	"github.com/davecgh/go-spew/spew"
 )
-
-var TtT map[ty.TokenCode]T = map[ty.TokenCode]T{
-	ty.NUMBER: INT,
-	ty.FLOAT:  FLOAT,
-	ty.BINARY: INT,
-	ty.STRING: STRING,
-}
 
 type Semantics struct {
 	*parser.Parser
@@ -41,26 +35,24 @@ func (s *Semantics) evalStmt(stmt parser.Stmt) Stmt {
 	default:
 		panic("Only SeqStmt supported at current date")
 	}
-
-	return nil
 }
 
-func (s *Semantics) evalExpr(exp parser.Expr) (Expr, T) {
+func (s *Semantics) evalExpr(exp parser.Expr) (Expr, ty.T) {
 	switch expT := exp.(type) {
 	case *parser.UnaryExpr:
 		e, t := s.evalExpr(expT.A)
 		return &UnaryExpr{OP: expT.OP, A: e, T: t}, t
 	case *parser.BasicLit:
-		t, ok := TtT[expT.Tok]
+		t, ok := ty.TtT[expT.Tok]
 		if ok {
 			return Basic(expT, t), t
 		}
-		return Basic(expT, ILLEGAL), ILLEGAL
+		return Basic(expT, ty.T_ILLEGAL), ty.T_ILLEGAL
 	case *parser.BinaryExpr:
 		e1, t1 := s.evalExpr(expT.A)
 		e2, t2 := s.evalExpr(expT.B)
 		if t1 != t2 {
-			panic(fmt.Sprintf("binary op between %d and %d not allowed", t1, t2))
+			panic(fmt.Sprintf("binary op between %s and %s not allowed", t1, t2))
 		}
 		return &BinaryExpr{A: e1, B: e2, OP: expT.OP, T: t1}, t1
 	case *parser.ParenExpr:
@@ -69,6 +61,7 @@ func (s *Semantics) evalExpr(exp parser.Expr) (Expr, T) {
 	case *parser.Ident:
 		panic("Semantic of IDENT nyi")
 	default:
+		spew.Dump(exp)
 		panic("hit default in semantic analysis")
 	}
 }

@@ -21,8 +21,25 @@ SeqTail :=
     | ';' SeqHead SeqTail
     | nil
 
+Struct := -- TODO
+    | "struct" CType Properties(?) -- TODO
+
 Assignment :=
-    | Ident '=' Expr
+    | Ident ':' '=' Expr
+    | Ident ':' Type '=' Expr
+
+Type :=
+    | NumberType
+    | "string"
+    | "bool"
+
+NumberType :=
+    | "int"
+    | "int8"
+    | "int64"
+    | "float"
+    | "float8"
+    | "float64"
 
 Expr := 
     | Unary
@@ -30,6 +47,7 @@ Expr :=
     | Paren
     | Basic
     | Ident
+    | String
 
 UnaryOp :=
     | '-' Basic
@@ -68,10 +86,8 @@ ZOs* :=
     | nil
 
 P2 := 
-    | 'x4'
-    | 'x8'
-    | 'x16'
-    | 'x32'
-    | 'x64'
-
+    | 'x8' 
+    | 'x64' 
 ```
+
+

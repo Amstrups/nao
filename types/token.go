@@ -6,10 +6,11 @@ import (
 
 var InvalidArgument = e.New("lists of unequal lengths")
 
-type TokenCode int
+//go:generate stringer -type=TokenCode
+type TokenCode uint
 
 const (
-	EOF = iota
+	EOF TokenCode = iota
 	ILLEGAL
 
 	IDENT
@@ -19,7 +20,7 @@ const (
 	FLOAT
 
 	DOT
-  SEMICOLON
+	SEMICOLON
 	DOUBLEQUOTE
 	SINGLEQUOTE
 
@@ -34,9 +35,8 @@ const (
 	BACKSLASH
 	SLASH
 
-  BINARY
-  P2
-  
+	BINARY
+	P2
 )
 
 type Token struct {

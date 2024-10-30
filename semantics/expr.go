@@ -6,8 +6,6 @@ import (
 )
 
 type (
-	T uint
-
 	Expr interface {
 		parser.Node
 		exprNode()
@@ -21,21 +19,6 @@ type (
 	ProgramExpr struct {
 		Root Stmt
 	}
-)
-
-const (
-	ILLEGAL = iota
-
-	INT
-	FLOAT
-
-	STRING
-
-	BOOL
-
-	VOID
-
-	IDENT
 )
 
 // Context
@@ -61,10 +44,10 @@ type BasicLit struct {
 	Pos   ty.Position
 	Tok   ty.TokenCode
 	Value string
-	T
+	ty.T
 }
 
-func Basic(b *parser.BasicLit, t T) *BasicLit {
+func Basic(b *parser.BasicLit, t ty.T) *BasicLit {
 	return &BasicLit{
 		Pos:   b.Pos,
 		Tok:   b.Tok,
@@ -82,7 +65,7 @@ func (b BasicLit) Start() ty.Position {
 type Ident struct {
 	name string
 	pos  ty.Position
-	T
+	ty.T
 }
 
 func (i Ident) Start() ty.Position {
@@ -93,7 +76,7 @@ func (i Ident) Start() ty.Position {
 type UnaryExpr struct {
 	OP ty.Token
 	A  Expr
-	T
+	ty.T
 }
 
 func (u UnaryExpr) Start() ty.Position {
@@ -105,7 +88,7 @@ type BinaryExpr struct {
 	A  Expr
 	OP ty.Token
 	B  Expr
-	T
+	ty.T
 }
 
 func (b BinaryExpr) Start() ty.Position {
@@ -115,7 +98,7 @@ func (b BinaryExpr) Start() ty.Position {
 // Parentethised(?) Expression
 type ParenExpr struct {
 	A Expr
-	T
+	ty.T
 }
 
 func (p ParenExpr) Start() ty.Position {
@@ -135,7 +118,7 @@ func (*BinaryExpr) exprNode() {}
 type SeqStmt struct {
 	Pos ty.Position
 	X   []Expr
-	T
+	ty.T
 }
 
 func (s SeqStmt) Start() ty.Position {

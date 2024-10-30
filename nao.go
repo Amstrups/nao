@@ -21,7 +21,9 @@ func Run(input string) semantics.Stmt {
 
 	s := semantics.New(p)
 
-	return s.Eval()
+	s_ := s.Eval()
+	spew.Dump(s)
+	return s_
 }
 
 func RunFile(path string) semantics.Stmt {

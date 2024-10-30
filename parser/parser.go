@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+
 	l "github.com/amstrups/nao/lexer"
 	t "github.com/amstrups/nao/types"
 )
@@ -31,13 +32,11 @@ func (p *Parser) ParseExpr() error {
 	p.Program.Root = p.parseStmt()
 
 	return nil
-
 }
 
 func (p *Parser) parseStmt() Stmt {
 	seq := &SeqStmt{pos: p.head.Pos, X: []Expr{}}
 	for {
-
 		switch p.head.T {
 		case t.EOF:
 			return seq
@@ -48,7 +47,6 @@ func (p *Parser) parseStmt() Stmt {
 		default:
 			seq.X = append(seq.X, p.parseExpr())
 		}
-
 		p.read()
 	}
 }
@@ -58,6 +56,7 @@ func (p *Parser) parseExpr() Expr {
 	case t.MINUS:
 		return p.unary()
 	case t.NUMBER, t.FLOAT, t.BINARY, t.IDENT, t.STRING:
+
 		return p.binop()
 	case t.LPAREN:
 		p.read()
@@ -75,14 +74,21 @@ func (p *Parser) parseExpr() Expr {
 
 }
 
-func (p *Parser) unary() *UnaryExpr {
+func (p *Parser) unary() Expr {
 	op := p.head
 	p.read()
 	switch p.head.T {
 	case t.NUMBER, t.FLOAT, t.IDENT, t.LPAREN:
-		return &UnaryExpr{OP: op, A: p.parseExpr()}
+		a := p.parseExpr()
+		switch at := a.(type) {
+		case *BinaryExpr:
+			at.A = &UnaryExpr{OP: op, A: at.A}
+			return at
+		default:
+			return &UnaryExpr{OP: op, A: a}
+		}
 	default:
-		return nil
+		return &BadExpr{From: p.head.Pos, value: fmt.Sprintf("Bad unary: %s", p.head.S)}
 	}
 }
 
@@ -91,10 +97,10 @@ func (p *Parser) binop() Expr {
 	p.read()
 
 	switch p.head.T {
-	case t.MULTI, t.SLASH:
+	case t.MULTI, t.SLASH, t.STRING:
 		bin := &BinaryExpr{A: left, OP: p.head}
-
 		p.read()
+
 		B := p.parseExpr()
 		switch ty := B.(type) {
 		case *BinaryExpr:
@@ -115,7 +121,7 @@ func (p *Parser) binop() Expr {
 		return left
 	}
 
-	return &BadExpr{From: left.Start(), value: p.head.S}
+	return &BadExpr{From: left.Start(), value: fmt.Sprintf("Bad binop: %s", p.head.S)}
 
 }
 

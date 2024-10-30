@@ -1,11 +1,12 @@
 package lexer
 
 import (
-	t "github.com/amstrups/nao/types"
 	"io"
 	"strings"
 	"time"
 	"unicode"
+
+	t "github.com/amstrups/nao/types"
 )
 
 type Lexer struct {
@@ -40,6 +41,15 @@ func (l *Lexer) unread() {
 func (l *Lexer) next(c rune) t.Position {
 	pos := l.pos
 	for l.ch != c || l.err != io.EOF {
+		l.advance()
+	}
+	return pos
+
+}
+
+func (l *Lexer) skip(c rune) t.Position {
+	pos := l.pos
+	for l.ch == c || l.err != io.EOF {
 		l.advance()
 	}
 	return pos
@@ -88,7 +98,7 @@ func (l *Lexer) lex() t.Token {
 		case ';':
 			return t.Token{T: t.SEMICOLON, Pos: l.pos, S: ";"}
 		case '"':
-			return t.Token{T: t.DOUBLEQUOTE, Pos: l.pos, S: "\""}
+			return l.string()
 		case '\'':
 			return t.Token{T: t.SINGLEQUOTE, Pos: l.pos, S: "'"}
 		case '(':
@@ -125,16 +135,15 @@ func (l *Lexer) binOrNumber() t.Token {
 	pos := l.pos
 	l.advance()
 	if l.ch != 'b' {
-		l.next('0')
+		l.skip('0')
 		n := l.number()
 		n.Pos = pos
 		return n
-
 	}
 
 	l.advance()
 
-	s := "0b"
+	s := ""
 	for {
 		switch l.ch {
 		case '0', '1':
@@ -153,7 +162,8 @@ func (l *Lexer) binOrNumber() t.Token {
 			}
 			n := l.number()
 			switch n.S {
-			case "4", "8", "16", "32", "64":
+			//case "4", "8", "16", "32", "64"
+			case "8", "64":
 				return t.Token{T: t.BINARY, Pos: pos, S: s + n.S}
 			}
 
@@ -162,12 +172,16 @@ func (l *Lexer) binOrNumber() t.Token {
 				Pos: pos,
 				S:   "Expected number X in 2^n for binary literal",
 			}
+		default:
+			l.unread()
+			return t.Token{T: t.BINARY, Pos: pos, S: s}
 		}
 	}
 }
 
 func (l *Lexer) number() t.Token {
 	tok := t.Token{T: t.NUMBER, Pos: l.pos, S: string(l.ch)}
+
 	for {
 		l.advance()
 		if l.ch == '\n' {
@@ -179,7 +193,6 @@ func (l *Lexer) number() t.Token {
 			} else {
 				tok := t.Token{T: t.ILLEGAL, Pos: tok.Pos, S: "Illegal dot after float"}
 				return tok
-
 			}
 
 		}
@@ -187,6 +200,7 @@ func (l *Lexer) number() t.Token {
 			tok.S += string(l.ch)
 			continue
 		}
+
 		l.unread()
 
 		return tok
@@ -211,19 +225,16 @@ func (l *Lexer) ident() t.Token {
 }
 
 func (l *Lexer) string() t.Token {
-	tok := t.Token{T: t.IDENT, Pos: l.pos, S: string(l.ch)}
+	tok := t.Token{T: t.STRING, Pos: l.pos, S: string(l.ch)}
 	for {
 		l.advance()
+		tok.S += string(l.ch)
 		if l.ch == '"' {
 			return tok
-		}
-		if unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) {
-			tok.S += string(l.ch)
-			continue
+		} else if l.err == io.EOF {
+			tok.T = t.ILLEGAL
+			return tok
 		}
 
-		l.unread()
-
-		return tok
 	}
 }
