@@ -18,7 +18,7 @@
  
 ## Pure functions
 Idea is to limit side effects from a function and provide guarantees to a user, about the behaviour of a function. 
-Similar to async/await, functions 
+Similar to async/await, `pure` can only call `pure`. Pure functions used in a cryptographic setting are should use keyword `puré`
 ### Initial syntax thoughts
 Normal function:
 ```
