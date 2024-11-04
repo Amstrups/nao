@@ -9,20 +9,20 @@ Statement :=
     | nil
 
 Sequence :=
-    | SeqHead SeqTail
-    | SeqHead
+    | SimpleStmt SeqTail
+    | SimpleStmt
     | nil
 
-SeqHead :=
-    | Expr
-    | Assignment
-
 SeqTail :=
-    | ';' SeqHead SeqTail
+    | ';' SimpleStmt SeqTail
     | nil
 
 Struct := -- TODO
     | "struct" CType Properties(?) -- TODO
+
+SimpleStmt :=
+    | Assignment
+    | ExprStmt
 
 Assignment :=
     | Ident ':' '=' Expr
@@ -89,5 +89,3 @@ P2 :=
     | 'x8' 
     | 'x64' 
 ```
-
-

@@ -7,6 +7,7 @@
 - Declarations
 - Multifile-support
 - Imports
+- Pure functions
 
 ## Missing Tests
 - BinaryExpr
@@ -20,7 +21,7 @@
 Idea is to limit side effects from a function and provide guarantees to a user, about the behaviour of a function. 
 Similar to async/await, `pure` can only call `pure`. Pure functions used in a cryptographic setting are should use keyword `puré`
 ### Initial syntax thoughts
-Normal function:
+Normal function, with no guarentees of purity:
 ```
 func Foo(arg a) b { ... }
 ```
@@ -28,3 +29,7 @@ func Foo(arg a) b { ... }
 ```
 pure Foo(arg a) b { ... }
 ```
+### Remark
+After discussing this idea with an acquaintance, they pointed out that this field is studied at Aarhus University for the language [Flix](https://flix.dev). 
+Further expansion of the *purity* concept may draw large amount of inspiration from the Flix language.  
+
