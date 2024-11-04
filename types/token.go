@@ -1,11 +1,5 @@
 package types
 
-import (
-	e "errors"
-)
-
-var InvalidArgument = e.New("lists of unequal lengths")
-
 //go:generate stringer -type=TokenCode
 type TokenCode uint
 
@@ -37,6 +31,9 @@ const (
 
 	BINARY
 	P2
+
+	// Keywords
+	FUNC
 )
 
 type Token struct {
@@ -56,4 +53,13 @@ func IsEqual(value []Token, expected []TokenCode) bool {
 
 	}
 	return true
+}
+
+func CheckIfKeyword(str string) TokenCode {
+	switch str {
+	case "func":
+		return FUNC
+	default:
+		return IDENT
+	}
 }

@@ -126,7 +126,6 @@ func (l *Lexer) lex() t.Token {
 			} else if unicode.IsLetter(l.ch) {
 				return l.ident()
 			}
-
 		}
 	}
 }
@@ -200,7 +199,6 @@ func (l *Lexer) number() t.Token {
 			tok.S += string(l.ch)
 			continue
 		}
-
 		l.unread()
 
 		return tok
@@ -211,15 +209,13 @@ func (l *Lexer) ident() t.Token {
 	tok := t.Token{T: t.IDENT, Pos: l.pos, S: string(l.ch)}
 	for {
 		l.advance()
-		if l.ch == '\n' {
-			return tok
-		}
 		if unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) {
 			tok.S += string(l.ch)
 			continue
 		}
 		l.unread()
 
+		tok.T = t.CheckIfKeyword(tok.S)
 		return tok
 	}
 }
@@ -235,6 +231,5 @@ func (l *Lexer) string() t.Token {
 			tok.T = t.ILLEGAL
 			return tok
 		}
-
 	}
 }

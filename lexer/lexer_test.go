@@ -226,3 +226,16 @@ func TestEmptyExpectation(t *testing.T) {
 
 	assert(input, expected, LENGTH_INEQAULITY, t)
 }
+
+func TestFuncKeyword(t *testing.T) {
+	input := "func 2 + 2"
+
+	expected := []ty.TokenCode{
+		ty.FUNC,
+		ty.NUMBER,
+		ty.PLUS,
+		ty.NUMBER,
+	}
+
+	assertNoError(input, expected, t)
+}
