@@ -1,5 +1,7 @@
 # NAO Syntax (Thoughts)
-```ML
+This serves as my thoughts on how the syntax for `nao` is defined.
+
+```sh
 Program := 
     | Statement
     | nil
@@ -25,21 +27,22 @@ SimpleStmt :=
     | ExprStmt
 
 Assignment :=
-    | Ident ':' '=' Expr
-    | Ident ':' Type '=' Expr
+    | "let" Ident ':' '=' Expr
+    | "let" Ident ':' Type '=' Expr
 
 Type :=
+    | 
     | NumberType
     | "string"
     | "bool"
 
 NumberType :=
-    | "int"
+    | "int" -- Drop this or "int64"?
     | "int8"
     | "int64"
-    | "float"
+    | "float" -- Drop this or "float64"?
     | "float8"
-    | "float64"
+    | "float64" 
 
 Expr := 
     | Unary
@@ -64,6 +67,7 @@ BasicLiteral :=
     | Float
     | String
     | Binary
+    | Vector
 
 Op :=
     | '+'
@@ -73,19 +77,46 @@ Op :=
     | '^' -- TODO
 
 Binary :=
-    | '0b' ZOs+ P2 
-    | '0b' ZOs+
+    | '0b' {'0'|'1'}+
 
-ZOs+ :=
-    | '0'ZOs*
-    | '1'ZOs*
+VectorType :=
+    | '[' T ',' Number ']' 
 
-ZOs* :=
-    | '0'ZOs*
-    | '1'ZOs*
-    | nil
+VectorValue :=
+    | '[' ti={Expr,','}*  ']' 
+    > T(ti) == T(tj), i != j 
+```
 
-P2 := 
-    | 'x8' 
-    | 'x64' 
+# Notation
+The notation above should be similar to *context-free grammars*, where each production rule have the following structure
+
+```sh
+RULE :=
+    | Non-terminal 
+    | 'terminal character'
+    | "terminal string"
+```
+
+Each line beginnig with an `'|'`, defines an `or`, and 
+```sh
+RULE1 := Non-terminal1
+RULE1 := Non-terminal2
+```
+is equivalent to
+```sh
+RULE1 :=
+    | Non-terminal1
+    | Non-terminal2
+```
+Lines starting with `>`, defines restrictions on the line above
+
+```sh
+NUMBER := 
+    | '1'
+    | '2'
+    | '3'
+
+OddIndex :=
+    | '[' A = number ']'
+    > A \in ['1', '3']
 ```

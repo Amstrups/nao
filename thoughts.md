@@ -8,6 +8,7 @@
 - Multifile-support
 - Imports
 - Pure functions
+- "nao what" // yes this is obviously a serious language
 
 ## Missing Tests
 - BinaryExpr
@@ -32,4 +33,5 @@ pure Foo(arg a) b { ... }
 ### Remark
 After discussing this idea with an acquaintance, they pointed out that this field is studied at Aarhus University for the language [Flix](https://flix.dev). 
 Further expansion of the *purity* concept may draw large amount of inspiration from the Flix language.  
+
 
