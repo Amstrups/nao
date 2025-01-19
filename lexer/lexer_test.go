@@ -2,17 +2,19 @@ package lexer
 
 import (
 	"fmt"
-	ty "github.com/amstrups/nao/types"
 	"strings"
 	"testing"
+
+	ty "github.com/amstrups/nao/types"
 )
 
+type TList []ty.TokenCode
 type ASSERT_ERROR_CODE int
 
 const (
 	NO_ERROR = iota
 	ELEMENT_INEQUALITY
-	LENGTH_INEQAULITY
+	LENGTH_INEQUALITY
 )
 
 type AssertError struct {
@@ -44,7 +46,6 @@ func concat2(xs []ty.TokenCode) string {
 }
 
 func prepareMessage(ts []ty.Token, tcs []ty.TokenCode) string {
-
 	return fmt.Sprintf("\n%10s %s\n%10s %s", "Found:", concat(ts), "Expected:", concat2(tcs))
 }
 
@@ -60,14 +61,13 @@ func lexAndAssertEquality(input string, expected []ty.TokenCode) AssertError {
 		tok := lexer.Lex()
 		if tok.T == ty.EOF {
 			if i == len(expected) {
-
 				return AssertError{NO_ERROR, ""}
 			}
-			return AssertError{LENGTH_INEQAULITY, prepareMessage(lexed, expected)}
+			return AssertError{LENGTH_INEQUALITY, prepareMessage(lexed, expected)}
 		}
 
 		if i >= len(expected) {
-			return AssertError{LENGTH_INEQAULITY, prepareMessage(lexed, expected)}
+			return AssertError{LENGTH_INEQUALITY, prepareMessage(lexed, expected)}
 		}
 
 		lexed[i] = tok
@@ -80,39 +80,38 @@ func lexAndAssertEquality(input string, expected []ty.TokenCode) AssertError {
 	}
 
 }
-func assert(input string, expected []ty.TokenCode, expRes ASSERT_ERROR_CODE, t *testing.T) {
+func assert(input string, expected TList, expRes ASSERT_ERROR_CODE, t *testing.T) {
 	result := lexAndAssertEquality(input, expected)
 
 	if result.code != expRes {
-		t.Fatal(result.msg)
+		t.Fatal(result.msg + fmt.Sprintf("\n%10s %d", "ErrorCode:", result.code))
 	}
 }
 
-func assertNoError(input string, expected []ty.TokenCode, t *testing.T) {
+func assertNoError(input string, expected TList, t *testing.T) {
 	assert(input, expected, NO_ERROR, t)
 }
 
 func TestSymbols(t *testing.T) {
-	assertNoError(".", []ty.TokenCode{ty.DOT}, t)
-	assertNoError("\"", []ty.TokenCode{ty.DOUBLEQUOTE}, t)
-	assertNoError("'", []ty.TokenCode{ty.SINGLEQUOTE}, t)
+	assertNoError(".", TList{ty.DOT}, t)
+	assertNoError("'", TList{ty.SINGLEQUOTE}, t)
 
-	assertNoError("(", []ty.TokenCode{ty.LPAREN}, t)
-	assertNoError(")", []ty.TokenCode{ty.RPAREN}, t)
+	assertNoError("(", TList{ty.LPAREN}, t)
+	assertNoError(")", TList{ty.RPAREN}, t)
 
-	assertNoError("=", []ty.TokenCode{ty.EQ}, t)
-	assertNoError("+", []ty.TokenCode{ty.PLUS}, t)
-	assertNoError("-", []ty.TokenCode{ty.MINUS}, t)
-	assertNoError("*", []ty.TokenCode{ty.MULTI}, t)
+	assertNoError("=", TList{ty.EQ}, t)
+	assertNoError("+", TList{ty.PLUS}, t)
+	assertNoError("-", TList{ty.MINUS}, t)
+	assertNoError("*", TList{ty.MULTI}, t)
 
-	assertNoError("\\", []ty.TokenCode{ty.BACKSLASH}, t)
-	assertNoError("/", []ty.TokenCode{ty.SLASH}, t)
+	assertNoError("\\", TList{ty.BACKSLASH}, t)
+	assertNoError("/", TList{ty.SLASH}, t)
 }
 
 func TestIdent1(t *testing.T) {
 	input := "Foo"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.IDENT,
 	}
 
@@ -122,7 +121,7 @@ func TestIdent1(t *testing.T) {
 func TestIdent2(t *testing.T) {
 	input := "Foo2"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.IDENT,
 	}
 
@@ -132,7 +131,7 @@ func TestIdent2(t *testing.T) {
 func TestIdent3(t *testing.T) {
 	input := "Foo+"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.IDENT,
 		ty.PLUS,
 	}
@@ -143,7 +142,7 @@ func TestIdent3(t *testing.T) {
 func TestSimpleBinaryExpression1(t *testing.T) {
 	input := "2+2"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.NUMBER,
 		ty.PLUS,
 		ty.NUMBER,
@@ -155,7 +154,7 @@ func TestSimpleBinaryExpression1(t *testing.T) {
 func TestSimpleBinaryExpression2(t *testing.T) {
 	input := "22+2"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.NUMBER,
 		ty.PLUS,
 		ty.NUMBER,
@@ -167,7 +166,7 @@ func TestSimpleBinaryExpression2(t *testing.T) {
 func TestSimpleBinaryExpression3(t *testing.T) {
 	input := "22+111111"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.NUMBER,
 		ty.PLUS,
 		ty.NUMBER,
@@ -179,7 +178,7 @@ func TestSimpleBinaryExpression3(t *testing.T) {
 func TestSpacedTokens1(t *testing.T) {
 	input := "2 2"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.NUMBER,
 		ty.NUMBER,
 	}
@@ -190,7 +189,7 @@ func TestSpacedTokens1(t *testing.T) {
 func TestSpacedTokens2(t *testing.T) {
 	input := "Foo Baa"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.IDENT,
 		ty.IDENT,
 	}
@@ -201,7 +200,7 @@ func TestSpacedTokens2(t *testing.T) {
 func TestPlusSequence(t *testing.T) {
 	input := "++"
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.PLUS,
 		ty.PLUS,
 	}
@@ -212,30 +211,17 @@ func TestPlusSequence(t *testing.T) {
 func TestEmptyInput(t *testing.T) {
 	input := ""
 
-	expected := []ty.TokenCode{
+	expected := TList{
 		ty.NUMBER,
 	}
 
-	assert(input, expected, LENGTH_INEQAULITY, t)
+	assert(input, expected, LENGTH_INEQUALITY, t)
 }
 
 func TestEmptyExpectation(t *testing.T) {
 	input := "input"
 
-	expected := []ty.TokenCode{}
+	expected := TList{}
 
-	assert(input, expected, LENGTH_INEQAULITY, t)
-}
-
-func TestFuncKeyword(t *testing.T) {
-	input := "func 2 + 2"
-
-	expected := []ty.TokenCode{
-		ty.FUNC,
-		ty.NUMBER,
-		ty.PLUS,
-		ty.NUMBER,
-	}
-
-	assertNoError(input, expected, t)
+	assert(input, expected, LENGTH_INEQUALITY, t)
 }

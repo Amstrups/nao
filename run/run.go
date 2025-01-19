@@ -1,34 +1,32 @@
-package nao
+package run
 
 import (
 	"fmt"
+	"github.com/amstrups/nao/ast"
 	"github.com/amstrups/nao/lexer"
 	"github.com/amstrups/nao/parser"
-	"github.com/amstrups/nao/semantics"
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
 )
 
-func Run(input string) semantics.Stmt {
+func Run(input string) ast.Stmt {
 	l := lexer.New(input)
 	p := parser.New(l)
 
-	if err := p.ParseExpr(); err != nil {
+	if err := p.ParseFile(); err != nil {
 		fmt.Println(err)
 		return nil
 	}
 
-	s := semantics.New(p)
-
-	s_ := s.Eval()
-	spew.Dump(s)
-	return s_
+  fmt.Println("\nAST:")
+	spew.Dump(p.Root)
+	return p.Root
 }
 
-func RunFile(path string) semantics.Stmt {
-	fmt.Printf("Reading file: \"%s\"\n", path)
-	f, err := os.ReadFile(path)
+func RunFile(relativePath string) ast.Stmt {
+	fmt.Printf("Reading file: \"%s\"\n", relativePath)
+	f, err := os.ReadFile(relativePath)
 	if err != nil {
 		panic(err)
 	}

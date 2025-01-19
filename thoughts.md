@@ -8,7 +8,12 @@
 - Multifile-support
 - Imports
 - Pure functions
-- "nao what" // yes this is obviously a serious language
+- "nao what" (yes this is obviously a serious language)
+    - Command for dictionary of concepts?
+    - Maybe should be part of `arit` so "arit what {CONCEPT}"
+    - Ex. "{arit|nao} what hoeffding inequality"
+        - Requires search functionality
+- Result types ( $a \times err?$ )
 
 ## Missing Tests
 - BinaryExpr

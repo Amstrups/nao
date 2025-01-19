@@ -1,0 +1,49 @@
+main = {
+  let x = 2
+  let z = 4
+  let y = 3
+  let u = add(x, y)
+  let u' = mul(u, u+1)
+  u++
+  print(u')
+
+  let foo = Foo{n: 2, m: 3}
+  let result = foo.mul(foo.n, foo.m)
+
+  print(result)
+}
+
+struct Foo {
+  n,m int 
+}
+
+fn foo(
+  x a,
+  y a,
+) {
+  print(x)
+  print(y)
+}
+
+#[
+fn foo(
+  x a,
+  y a,
+) {
+  print(x)
+  print(y)
+}
+
+impl Foo as f {
+  baa() a {
+    return f.n
+  }
+
+  add(x a, y a) a {
+    return x + y
+  }
+
+  mul(x, y a) a -> x * y
+}
+]#
+

@@ -29,6 +29,7 @@ SimpleStmt :=
 Assignment :=
     | "let" Ident ':' '=' Expr
     | "let" Ident ':' Type '=' Expr
+    | Ident '=' Expr
 
 Type :=
     | 
@@ -67,7 +68,7 @@ BasicLiteral :=
     | Float
     | String
     | Binary
-    | Vector
+    | VectorValue
 
 Op :=
     | '+'
@@ -76,20 +77,22 @@ Op :=
     | '/'
     | '^' -- TODO
 
-Binary :=
+Binary := 
     | '0b' {'0'|'1'}+
 
 VectorType :=
     | '[' T ',' Number ']' 
 
 VectorValue :=
-    | '[' ti={Expr,','}*  ']' 
-    > T(ti) == T(tj), i != j 
+    | '[' Expr {',', Expr}*  ']'
+    | '[' ']'
 ```
+
 
 # Notation
 The notation above should be similar to *context-free grammars*, where each production rule have the following structure
 
+### Basis
 ```sh
 RULE :=
     | Non-terminal 
@@ -97,10 +100,15 @@ RULE :=
     | "terminal string"
 ```
 
-Each line beginnig with an `'|'`, defines an `or`, and 
+### Branching productions
+
+Each line beginnig with an `'|'`, defines an `or`, such that
 ```sh
-RULE1 := Non-terminal1
-RULE1 := Non-terminal2
+RULE1 := 
+    | Non-terminal1
+
+RULE1 :=
+    | Non-terminal2
 ```
 is equivalent to
 ```sh
@@ -108,7 +116,9 @@ RULE1 :=
     | Non-terminal1
     | Non-terminal2
 ```
-Lines starting with `>`, defines restrictions on the line above
+
+### Production inference (TODO)
+Lines starting with `>`, defines *restriction* on the line above
 
 ```sh
 NUMBER := 
@@ -120,3 +130,7 @@ OddIndex :=
     | '[' A = number ']'
     > A \in ['1', '3']
 ```
+
+Due to limitations of markdown (and the fact I don't want to keep rendering some document with proper "inference rule" notation), this is a decent middle ground
+
+Still working on how to define inference in a more compact way

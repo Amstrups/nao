@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	t "github.com/amstrups/nao/types"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type Lexer struct {
@@ -28,13 +29,27 @@ func New(s string) *Lexer {
 	}
 }
 
+func (l *Lexer) isEof() bool {
+	if l.err != nil {
+		if l.err == io.EOF {
+			return true
+		}
+		panic(l.err)
+	}
+	return false
+}
+
 func (l *Lexer) unread() {
 	if l.pos.IsAtStart() {
+		println("at start")
 		return
 	}
 	l.err = l.reader.UnreadRune()
 
-	l.pos.Line = max(1, l.pos.Line-1)
+	l.ch = l.old
+	if l.pos.Column == 1 {
+		l.pos.Line = max(1, l.pos.Line-1)
+	}
 	l.pos.Column = max(0, l.pos.Column-1)
 }
 
@@ -47,6 +62,11 @@ func (l *Lexer) next(c rune) t.Position {
 
 }
 
+func (l *Lexer) newline() {
+	l.pos.Line++
+	l.pos.Column = 1
+}
+
 func (l *Lexer) skip(c rune) t.Position {
 	pos := l.pos
 	for l.ch == c || l.err != io.EOF {
@@ -57,6 +77,7 @@ func (l *Lexer) skip(c rune) t.Position {
 }
 
 func (l *Lexer) advance() {
+	l.old = l.ch
 	l.ch, _, l.err = l.reader.ReadRune()
 	if l.ch == '\n' {
 		l.pos.Line++
@@ -80,23 +101,24 @@ func (l *Lexer) Lex() t.Token {
 }
 
 func (l *Lexer) lex() t.Token {
-
 	for {
 		l.advance()
-		if l.err != nil {
-			if l.err == io.EOF {
-				return t.Token{T: t.EOF, Pos: l.pos, S: ""}
-			}
-			return t.Token{T: t.ILLEGAL, Pos: l.pos, S: "ILLEGAL"}
+		if l.isEof() {
+			return t.Token{T: t.EOF, Pos: l.pos, S: ""}
 		}
-
 		switch l.ch {
+		case '\n':
+			return t.Token{T: t.NEWLINE, Pos: l.pos, S: "\n"}
 		case ' ':
 			continue
 		case '.':
 			return t.Token{T: t.DOT, Pos: l.pos, S: "."}
+		case ',':
+			return t.Token{T: t.COMMA, Pos: l.pos, S: ","}
 		case ';':
 			return t.Token{T: t.SEMICOLON, Pos: l.pos, S: ";"}
+		case ':':
+			return t.Token{T: t.COLON, Pos: l.pos, S: ":"}
 		case '"':
 			return l.string()
 		case '\'':
@@ -105,6 +127,14 @@ func (l *Lexer) lex() t.Token {
 			return t.Token{T: t.LPAREN, Pos: l.pos, S: "("}
 		case ')':
 			return t.Token{T: t.RPAREN, Pos: l.pos, S: ")"}
+		case '[':
+			return t.Token{T: t.LBRACKET, Pos: l.pos, S: "["}
+		case ']':
+			return t.Token{T: t.RBRACKET, Pos: l.pos, S: "]"}
+		case '{':
+			return t.Token{T: t.LBRACE, Pos: l.pos, S: "{"}
+		case '}':
+			return t.Token{T: t.RBRACE, Pos: l.pos, S: "}"}
 		case '=':
 			return t.Token{T: t.EQ, Pos: l.pos, S: "="}
 		case '+':
@@ -119,7 +149,8 @@ func (l *Lexer) lex() t.Token {
 			return t.Token{T: t.SLASH, Pos: l.pos, S: "/"}
 		case '0':
 			return l.binOrNumber()
-
+		case '#':
+			return l.comment()
 		default:
 			if unicode.IsDigit(l.ch) {
 				return l.number()
@@ -132,11 +163,11 @@ func (l *Lexer) lex() t.Token {
 
 func (l *Lexer) binOrNumber() t.Token {
 	pos := l.pos
+
 	l.advance()
 	if l.ch != 'b' {
-		l.skip('0')
+		l.unread()
 		n := l.number()
-		n.Pos = pos
 		return n
 	}
 
@@ -144,36 +175,20 @@ func (l *Lexer) binOrNumber() t.Token {
 
 	s := ""
 	for {
+		if l.isEof() {
+			return t.Token{T: t.BINARY, Pos: pos, S: s}
+		}
+
 		switch l.ch {
 		case '0', '1':
 			s += string(l.ch)
 			l.advance()
 			continue
-		case 'x':
-			s += "x"
-			l.advance()
-			if unicode.IsDigit(l.ch) == false {
-				return t.Token{T: t.ILLEGAL,
-					Pos: pos,
-					S:   "Expected number after binary length decl",
-				}
-
-			}
-			n := l.number()
-			switch n.S {
-			//case "4", "8", "16", "32", "64"
-			case "8", "64":
-				return t.Token{T: t.BINARY, Pos: pos, S: s + n.S}
-			}
-
-			return t.Token{
-				T:   t.ILLEGAL,
-				Pos: pos,
-				S:   "Expected number X in 2^n for binary literal",
-			}
-		default:
+		case ' ', '\n':
 			l.unread()
 			return t.Token{T: t.BINARY, Pos: pos, S: s}
+		default:
+			return t.Token{T: t.ILLEGAL, Pos: l.pos, S: "Expected x in {0,1}, found " + string(l.ch)}
 		}
 	}
 }
@@ -184,11 +199,14 @@ func (l *Lexer) number() t.Token {
 	for {
 		l.advance()
 		if l.ch == '\n' {
+			l.unread()
 			return tok
 		}
 		if l.ch == '.' {
 			if tok.T == t.NUMBER {
 				tok.T = t.FLOAT
+				tok.S += string(l.ch)
+				continue
 			} else {
 				tok := t.Token{T: t.ILLEGAL, Pos: tok.Pos, S: "Illegal dot after float"}
 				return tok
@@ -196,6 +214,7 @@ func (l *Lexer) number() t.Token {
 
 		}
 		if unicode.IsDigit(l.ch) {
+
 			tok.S += string(l.ch)
 			continue
 		}
@@ -209,13 +228,14 @@ func (l *Lexer) ident() t.Token {
 	tok := t.Token{T: t.IDENT, Pos: l.pos, S: string(l.ch)}
 	for {
 		l.advance()
-		if unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) {
+		if unicode.IsLetter(l.ch) || unicode.IsDigit(l.ch) || l.ch == '\'' {
 			tok.S += string(l.ch)
 			continue
 		}
 		l.unread()
 
 		tok.T = t.CheckIfKeyword(tok.S)
+		spew.Dump(tok)
 		return tok
 	}
 }
@@ -231,5 +251,46 @@ func (l *Lexer) string() t.Token {
 			tok.T = t.ILLEGAL
 			return tok
 		}
+	}
+}
+
+func (l *Lexer) comment() t.Token {
+	tok := t.Token{T: t.COMMENT, Pos: l.pos}
+	l.advance()
+	if l.ch == '[' {
+		tok.T = t.COMMENT_BLOCK
+		tok.S = l.commentblock()
+		return tok
+	}
+
+	for {
+		if l.isEof() {
+			return tok
+		}
+		if l.ch == '\n' {
+			l.unread()
+			return tok
+		}
+
+		tok.S += string(l.ch)
+		l.advance()
+	}
+}
+
+func (l *Lexer) commentblock() string {
+	var comment string
+	for {
+		if l.isEof() {
+			return comment
+		}
+
+		if l.ch == ']' {
+			l.advance()
+			if l.ch == '#' {
+				return comment
+			}
+			comment += string(']') + string(l.ch)
+		}
+		l.advance()
 	}
 }

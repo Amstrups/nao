@@ -6,6 +6,8 @@ type TokenCode uint
 const (
 	EOF TokenCode = iota
 	ILLEGAL
+	NIL
+  NEWLINE
 
 	IDENT
 	STRING
@@ -14,12 +16,17 @@ const (
 	FLOAT
 
 	DOT
+  COMMA
+	COLON
 	SEMICOLON
-	DOUBLEQUOTE
 	SINGLEQUOTE
 
 	LPAREN
 	RPAREN
+	LBRACKET
+	RBRACKET
+	LBRACE
+	RBRACE
 
 	EQ
 	PLUS
@@ -28,12 +35,24 @@ const (
 
 	BACKSLASH
 	SLASH
+	DOUBLESLASH
+
+	// Comment style like Nim
+	COMMENT       // #
+	COMMENT_BLOCK // #[ ... ]#
 
 	BINARY
-	P2
 
 	// Keywords
-	FUNC
+	KEY_MAIN
+
+	KEY_FUNCTION
+	KEY_LET
+	KEY_STRUCT
+	KEY_IMPL
+	KEY_RANGE
+
+	KEY_PANIC
 )
 
 type Token struct {
@@ -50,16 +69,29 @@ func IsEqual(value []Token, expected []TokenCode) bool {
 		if value[i].T != expected[i] {
 			return false
 		}
-
 	}
 	return true
 }
 
+var KEYWORDS = map[string]TokenCode{
+	"master": KEY_MAIN, // it's the same thing
+	"main":   KEY_MAIN,
+
+	"fn":     KEY_FUNCTION,
+	"let":    KEY_LET,
+	"struct": KEY_STRUCT,
+	"impl":   KEY_IMPL,
+	"range":  KEY_RANGE,
+
+	"fuck": KEY_PANIC, // cause it's fun
+  
+}
+
 func CheckIfKeyword(str string) TokenCode {
-	switch str {
-	case "func":
-		return FUNC
-	default:
-		return IDENT
+	val, ok := KEYWORDS[str]
+	if ok {
+		return val
 	}
+
+	return IDENT
 }

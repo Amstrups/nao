@@ -1,0 +1,19 @@
+main = {
+  let a = 2
+
+  let whiskers = Cat{ Name: "Whiskers" }
+
+  print(whiskers.Name)
+  print(x.Y.Z)
+  print(x + Y + Z)
+}
+
+struct Cat {
+  Name string
+}
+
+fn Add(x int, y int) int {
+  return x + y
+}
+
+
