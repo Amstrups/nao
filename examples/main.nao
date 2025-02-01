@@ -26,24 +26,24 @@ fn foo(
 }
 
 #[
-fn foo(
-  x a,
-  y a,
-) {
-  print(x)
-  print(y)
-}
-
-impl Foo as f {
-  baa() a {
-    return f.n
+  fn foo(
+    x a,
+    y a,
+  ) {
+    print(x)
+    print(y)
   }
 
-  add(x a, y a) a {
-    return x + y
-  }
+  impl Foo as f {
+    fn *baa() a {
+      return f.n
+    }
 
-  mul(x, y a) a -> x * y
-}
+    fn *add(x a, y a) a {
+      return x + y
+    }
+
+    fn *mul(x, y a) a -> x * y
+  }
 ]#
 
