@@ -7,7 +7,6 @@ import (
 	"unicode"
 
 	t "github.com/amstrups/nao/types"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type Lexer struct {
@@ -235,7 +234,6 @@ func (l *Lexer) ident() t.Token {
 		l.unread()
 
 		tok.T = t.CheckIfKeyword(tok.S)
-		spew.Dump(tok)
 		return tok
 	}
 }

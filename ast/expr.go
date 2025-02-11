@@ -87,6 +87,23 @@ func (b BinaryExpr) String() string {
 	return fmt.Sprintf("BinOp: [%v;%s;%v]", b.A, b.OP.T.String(), b.B)
 }
 
+// Not-A-Vector Expression
+type ArrayExpr struct {
+	Pos  ty.Position
+	Xt   *Ident
+	XDim []Expr
+	Xs   []Expr
+	ty.T
+}
+
+func (a ArrayExpr) Start() ty.Position {
+	return a.Pos
+}
+
+func (a ArrayExpr) String() string {
+	return fmt.Sprintf("Dim(%v): %v", a.XDim, a.Xs)
+}
+
 // Parentethised(?) Expression
 type ParenExpr struct {
 	A Expr
@@ -159,4 +176,4 @@ func (*CallExpr) exprNode()      {}
 func (*ConstructExpr) exprNode() {}
 func (*UnaryExpr) exprNode()     {}
 func (*BinaryExpr) exprNode()    {}
-
+func (*ArrayExpr) exprNode()     {}

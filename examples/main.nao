@@ -7,9 +7,18 @@ main = {
   u++
   print(u')
 
+  let zz = [1,2,3]
+
   let foo = Foo{n: 2, m: 3}
   let result = foo.mul(foo.n, foo.m)
 
+  let arr = [int;3;3] {
+    [2,2,3],
+    [3,3,4],
+    [4,4,5],
+  }
+
+  let fooArr = [foo;3]{}
   print(result)
 }
 
@@ -25,22 +34,17 @@ fn foo(
   print(y)
 }
 
-#[
-  fn foo(
-    x a,
-    y a,
-  ) {
-    print(x)
-    print(y)
-  }
 
+#[
   impl Foo as f {
-    fn *baa() a {
+    // @ sign to indicate function 
+    // take 'self' as parameter
+    fn @baa() a {
       return f.n
     }
 
-    fn *add(x a, y a) a {
-      return x + y
+    fn @add(x a, y a) a {
+      rcturn x + y
     }
 
     fn *mul(x, y a) a -> x * y

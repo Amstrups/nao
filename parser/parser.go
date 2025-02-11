@@ -25,6 +25,20 @@ func (p *Parser) read() t.Token {
 	return p.head
 }
 
+func (p *Parser) readIgnoreWs() t.Token {
+	for {
+		p.head = p.Lex()
+		switch p.head.T {
+		case t.COMMENT:
+		case t.COMMENT_BLOCK:
+		case t.NEWLINE:
+			continue
+		default:
+			return p.head
+		}
+	}
+}
+
 func New(lexer *l.Lexer) *Parser {
 	return &Parser{
 		Lexer:   lexer,
@@ -146,7 +160,6 @@ func (p *Parser) parseMain() ast.Stmt {
 		p.consume(t.RBRACE)
 		p.consume(t.NEWLINE)
 		main.Decls = p.parseDecls()
-		spew.Dump(main.Decls[0])
 
 		return main
 	default:
@@ -168,13 +181,9 @@ func (p *Parser) parseDecls() []ast.Decl {
 		case t.EOF:
 			return decls
 		case t.KEY_STRUCT:
-			fmt.Println("parsing struct")
 			strct := p.parseStruct()
-			fmt.Println("Struct output")
-			spew.Dump(strct.Parameters)
 			decls = append(decls, strct)
 		case t.KEY_FUNCTION:
-			fmt.Println("parsing func")
 			fn := p.parseFuncDecl()
 			decls = append(decls, fn)
 
@@ -246,7 +255,7 @@ func (p *Parser) parseFuncDecl() *ast.FuncDecl {
 		panic(p.error2(p.head, t.LBRACE))
 	}
 
-  p.consume(t.LBRACE)
+	p.consume(t.LBRACE)
 	p.consume(t.NEWLINE)
 
 	stmt := p.parseStmt()
@@ -265,7 +274,7 @@ func (p *Parser) parseFuncDecl() *ast.FuncDecl {
 		panic(p.error2(p.head, t.RBRACE))
 	}
 
-  p.consume(t.RBRACE)
+	p.consume(t.RBRACE)
 	p.consume(t.NEWLINE)
 
 	return fn
@@ -295,8 +304,6 @@ func (p *Parser) parseParamsOrProps(
 	}()
 
 	list := []*ast.TypedVariables{}
-
-	fmt.Println("entering loop")
 
 	for { // for each chain in list
 		p.consume(t.NEWLINE)
@@ -372,10 +379,8 @@ func (p *Parser) parseSeqStmt() ast.Stmt {
 	p.consume(t.NEWLINE)
 	seq := &ast.SeqStmt{Pos: p.head.Pos, X: []ast.Stmt{}}
 
-	fmt.Println("starting seq stmt")
 	for {
 		p.consume(t.NEWLINE)
-		fmt.Println(p.head)
 		switch p.head.T {
 		case t.EOF, t.RBRACE:
 			if len(seq.X) == 1 {
@@ -384,7 +389,6 @@ func (p *Parser) parseSeqStmt() ast.Stmt {
 			return seq
 		case t.SEMICOLON, t.KEY_LET, t.IDENT:
 			p.consume(t.SEMICOLON)
-			fmt.Println("here")
 			seq.X = append(seq.X, p.parseSimpleStmt())
 			continue
 		case t.COMMENT, t.COMMENT_BLOCK:
@@ -413,7 +417,11 @@ func (p *Parser) parseSimpleStmt() ast.Stmt {
 		p.read()
 
 		ae := &ast.AssignStmt{I: &ast.Ident{Name: ident.S, Pos: ident.Pos}}
-		ae.A = p.parseExpr()
+		if p.head.T == t.LBRACKET {
+			ae.A = p.array()
+		} else {
+			ae.A = p.parseExpr()
+		}
 		return ae
 	case t.IDENT:
 		ident := p.newIdent(p.head)
@@ -449,8 +457,6 @@ func (p *Parser) parseSimpleStmt() ast.Stmt {
 }
 
 func (p *Parser) parseExpr() ast.Expr {
-	fmt.Println("parseExpr")
-	spew.Dump(p.head)
 	p.consume(t.NEWLINE)
 
 	switch p.head.T {
@@ -465,6 +471,8 @@ func (p *Parser) parseExpr() ast.Expr {
 			return &ast.BadExpr{From: x.Start(), Value: "Unclosed parenthesis"}
 		}
 		return &ast.ParenExpr{A: x}
+	case t.LBRACKET:
+		return p.arrayElems(nil, t.RBRACKET)
 	case t.EOF, t.RBRACE:
 		return nil
 	default:
@@ -530,7 +538,6 @@ func (p *Parser) binop() ast.Expr {
 			spew.Dump(left)
 			panic("wtf are you trying to do with that left brace?")
 		}
-
 	case t.PLUS, t.MINUS:
 		bin := &ast.BinaryExpr{A: left, OP: p.head}
 		p.read()
@@ -544,12 +551,101 @@ func (p *Parser) binop() ast.Expr {
 	}
 }
 
+func (p *Parser) array() ast.Expr {
+	arrExp := &ast.ArrayExpr{
+		Pos:  p.head.Pos,
+		Xs:   []ast.Expr{},
+		XDim: []ast.Expr{},
+	}
+	if p.head.T != t.LBRACKET {
+		panic("cant parse array that doesn't start with left bracket")
+	}
+	p.read()
+
+	f1 := p.parseExpr()
+
+	if p.head.T != t.SEMICOLON {
+	arrExp.Xs = append(arrExp.Xs, f1)
+		return p.arrayElems(arrExp, t.RBRACKET)
+	}
+
+	{
+		t1, ok := f1.(*ast.Ident)
+		if !ok {
+			panic("expected identifier as type for array definition")
+		}
+		arrExp.Xt = t1
+	}
+
+	for {
+		p.read()
+		fi := p.parseExpr()
+		p.consume(t.NEWLINE)
+		arrExp.XDim = append(arrExp.XDim, fi)
+		if p.head.T == t.SEMICOLON {
+			continue
+		}
+
+		if p.head.T == t.RBRACKET {
+			p.readIgnoreWs()
+			break
+		}
+
+		panic(p.error2(p.head, t.SEMICOLON, t.RBRACKET))
+	}
+
+	if p.head.T != t.LBRACE {
+		panic(p.error2(p.head, t.LBRACE))
+	}
+
+	return p.arrayElems(arrExp, t.RBRACE)
+}
+
+func (p *Parser) arrayElems(arr *ast.ArrayExpr, closing t.TokenCode) (out ast.Expr) {
+  defer func() {
+    out = arr
+    p.consume(closing)
+  }()
+
+	if arr == nil {
+		arr = &ast.ArrayExpr{
+			Pos: p.head.Pos,
+			Xs:  []ast.Expr{},
+		}
+	}
+
+	p.readIgnoreWs()
+	for {
+		p.consume(t.NEWLINE)
+
+		if p.head.T == closing {
+			return
+		}
+
+		xi := p.parseExpr()
+		arr.Xs = append(arr.Xs, xi)
+    spew.Dump(xi.Start())
+    spew.Dump(p.head)
+		if p.head.T == t.COMMA {
+			p.consume(t.COMMA)
+			continue
+		}
+
+		if p.head.T == closing {
+			return
+		}
+
+		panic(p.error2(p.head, t.COMMA, t.RBRACKET))
+	}
+}
+
 func (p *Parser) parseLhs() ast.Expr {
 	switch p.head.T {
 	case t.IDENT:
 		return p.parseIdent()
 	case t.STRING, t.NUMBER, t.FLOAT, t.BINARY:
 		return &ast.BasicLit{Value: p.head.S, Pos: p.head.Pos, Tok: p.head.T}
+
 	}
 	return nil
 }
