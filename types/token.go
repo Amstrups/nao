@@ -21,11 +21,17 @@ const (
 	SEMICOLON
 	SINGLEQUOTE
 
+  // (
 	LPAREN
+  // )
 	RPAREN
+  // [
 	LBRACKET
+  // ]
 	RBRACKET
+  // {
 	LBRACE
+  // }
 	RBRACE
 
 	EQ
