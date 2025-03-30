@@ -1,4 +1,3 @@
-// My comments goes here for my package
 package parser
 
 import (
